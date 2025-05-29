@@ -1,0 +1,26 @@
+# LaTeX intermediate and output files
+*.aux
+*.bbl
+*.blg
+*.brf
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.pdfsync
+*.xdv
+
+# Temporary files
+*~
+*.bak
+*.tmp
+
+# OS-specific files
+.DS_Store
+Thumbs.db
