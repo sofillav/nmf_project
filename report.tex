@@ -4,19 +4,107 @@
 \usepackage{amsmath,amsfonts,amssymb}
 \usepackage{hyperref}
 
+\newcommand{\R}{\mathbb{R}}
+
 \title{Nonnegative Matrix Factorization}
 \author{Sofía Llavayol}
 \date{\today}
-\email{so.llavayol@gmail.com}
+%\email{so.llavayol@gmail.com}
 
 \begin{document}
 
 \begin{abstract}
-    This document presents the final project for the course {\it Numerical Linear Algebra for Statistical Learning} at Universidad de la República, Uruguay.
+    This document presents the final project for the course \textit{Numerical Linear Algebra for Statistical Learning} at Universidad de la República, Uruguay. It outlines the fundamental concepts of Nonnegative Matrix Factorization based on the reference \cite{G}, and includes selected experiments implemented in Python to illustrate key ideas.
 \end{abstract}
+
 
 \maketitle
 
 \section{Introduction}
+
+{\it Nonnegative matrix factorization (NMF)} is an easily interpretable {\it linear dimensionality reduction (LDR)} technique for nonnegative data. We first introduce the general concept of LDR, followed by a more detailed discussion of NMF.
+
+\subsection{LDR techniques for Data
+Analysis}
+
+Extracting the underlying structure within data sets is one of the central problems in data science, and numerous techniques exist to perform this task. One of the oldest approaches is LDR. The idea of LDR is to represent each data point as a linear combination of a small number of basis elements.
+
+Mathematically, given a dataset of $n$ data points $x_1, \ldots, x_n \in\R^m$, LDR looks for $r\ll\min\{n,m\}$ basis vectors $w_1, \ldots, w_r \in\R^m$ such that each data point $x_j$ is well-approximated by a linear combination of these basis vectors:
+\[
+    x_j\approx w_1\cdot h_{1j} +\cdots +w_r\cdot h_{rj}=
+    \begin{bmatrix}
+        w_1 \cdots w_r
+    \end{bmatrix}
+    \begin{bmatrix}
+        h_{1j}\\
+        \vdots\\
+        h_{rj}
+    \end{bmatrix}= W h_j,
+\]
+for some $h_j= \begin{bmatrix} h_{1j}, \ldots, h_{rj} \end{bmatrix}^T \in\R^r$.
+
+Note that this is equivalent to {\it low-rank matrix approximation (LRMA)} --that is, expressing $X \approx WH$ where
+\begin{itemize}
+    \item each column of $X\in\R^{m\times n}$ is a data point, $X(:,j)=x_j$;
+    \item each column of $W\in\R^{m\times r}$ is a basis element, $W(:,j)=w_j$;
+    \item each column of $H\in\R^{r\times n}$ contains the coordinates of a data point $x_j$ in the basis $W$, $H(:,j)=h_j$.
+\end{itemize}
+Hence LDR provides a rank-$r$ approximation $WH$ of $X$, which can be written as:
+\[
+    \begin{bmatrix} x_1 \cdots x_n \end{bmatrix} \approx
+    \begin{bmatrix} w_1 \cdots w_r \end{bmatrix}
+    \begin{bmatrix} h_1 \cdots h_n \end{bmatrix}.
+\]
+
+\bigskip
+
+In order to compute $W$ and $H$ given $X$ and $r$, one needs to define an error measure. For example, when $(W,H)$ minimizes the Frobenius norm
+\[  
+    \|X-WH\|_F^2 = \sum_{i,j} (X-WH)_{ij}^2,
+\]
+then LRMA is equivalent to {\it principal component analysis (PCA)}, which can be computed via the {\it singular value decomposition (SVD)}.
+
+\bigskip
+
+LRMA models are used to compress the data, filter the noise, reduce the computational effort for further manipulation of the data, or to directly identify hidden structure in a data set. Many variants of LRMA have been developed, and they differ in two key aspects: (1) the error measure can vary and should be chosen depending on the noise statistic assumed on the data,
+(2) different constraints can be imposed on the factors $W$ and $H$.
+
+\subsection{NMF, an LDR technique for nonnegative data}
+
+Among LRMA models, nonnegative matrix factorization requires the factor matrices $W$ and $H$ to be componentwise nonnegative, which we denote $W\geq 0$ and $H\geq 0$. In Section~\ref{facial_feature_extraction}, we discuss an application where these nonnegativity constraints are natural and meaningful.
+
+Formally, the NMF problem is defined as follows.
+
+\bigskip
+
+\noindent\fbox{
+    \parbox{\textwidth}{
+        {\bf NMF Problem.} Given a nonnegative matrix \( X \in \mathbb{R}^{m \times n} \), a factorization rank \( r \), and a distance measure between matrices \( d(\cdot, \cdot) \), solve
+        \[
+            \min_{\substack{W \in \mathbb{R}^{m \times r} \\ H \in \mathbb{R}^{r \times n}}} d(X, WH) \quad \text{such that } W \geq 0 \text{ and } H \geq 0.
+        \]
+    }%
+}
+
+\bigskip
+
+In Section~\ref{NMF_algorithm}, we discuss an algorithm for the case where the distance measure is induced by the Frobenius norm. An application of this algorithm is presented in Section~\ref{facial_feature_extraction}.
+
+\section{Application on Facial Feature Extraction} \label{facial_feature_extraction}
+
+\section{An algorithm} \label{NMF_algorithm}
+
+In this section, we focus on the following optimization problem
+\begin{equation}
+    \label{optimization_problem}
+    \min_{\substack{W \in \mathbb{R}^{m \times r} \\ H \in \mathbb{R}^{r \times n}}} \|x-WH\|_F^2 \quad \text{such that } W \geq 0 \text{ and } H \geq 0.
+\end{equation}
+
+
+
+\begin{thebibliography}{9}
+    \bibitem{G}
+    Gillis, N. (2021). Nonnegative matrix factorization. Society for Industrial and Applied Mathematics. https://lccn.loc.gov/2020042037
+\end{thebibliography}
 
 \end{document}
