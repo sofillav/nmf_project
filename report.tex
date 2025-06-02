@@ -80,25 +80,29 @@ Formally, the NMF problem is defined as follows.
 \noindent\fbox{
     \parbox{\textwidth}{
         {\bf NMF Problem.} Given a nonnegative matrix \( X \in \mathbb{R}^{m \times n} \), a factorization rank \( r \), and a distance measure between matrices \( d(\cdot, \cdot) \), solve
-        \[
+        \begin{equation}
+            \label{optimization_problem}
             \min_{\substack{W \in \mathbb{R}^{m \times r} \\ H \in \mathbb{R}^{r \times n}}} d(X, WH) \quad \text{such that } W \geq 0 \text{ and } H \geq 0.
-        \]
+        \end{equation}
     }%
 }
 
 \bigskip
 
-In Section~\ref{NMF_algorithm}, we discuss an algorithm for the case where the distance measure is induced by the Frobenius norm. An application of this algorithm is presented in Section~\ref{facial_feature_extraction}.
+In Section~\ref{NMF_algorithm}, we discuss an algorithm to approximate this minimum for the case where the distance measure is induced by the Frobenius norm. An application of this algorithm to image processing is presented in Section~\ref{facial_feature_extraction}.
 
 \section{Application on Facial Feature Extraction} \label{facial_feature_extraction}
 
-\section{An algorithm} \label{NMF_algorithm}
+$\cdots$
 
-In this section, we focus on the following optimization problem
+\section{Algorithm with multiplicative updates} \label{NMF_algorithm}
+
+Let $X\in\R^{m\times n}$ and $r \ll\min\{n,m\}$ be given. In this section, we focus on the following optimization problem
 \begin{equation}
-    \label{optimization_problem}
-    \min_{\substack{W \in \mathbb{R}^{m \times r} \\ H \in \mathbb{R}^{r \times n}}} \|x-WH\|_F^2 \quad \text{such that } W \geq 0 \text{ and } H \geq 0.
+    \label{optimization_problem_frobenius}
+    \min_{\substack{W \in \mathbb{R}^{m \times r} \\ H \in \mathbb{R}^{r \times n}}} f(W,H) \quad \text{such that } W \geq 0 \text{ and } H \geq 0,
 \end{equation}
+where $f(W,H)= \frac{1}{2} \|X-WH\|_F^2$.
 
 
 

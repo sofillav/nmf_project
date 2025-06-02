@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+
 
 class NMF:
     def __init__(self, n_components, max_iter=200, tol=1e-4, random_state=None, verbose=False):
@@ -20,18 +22,15 @@ class NMF:
         eps = 1e-10  # Small constant to avoid division by zero
 
         for i in range(self.max_iter):
-            # Store the old approximation for convergence check
-            X_approx = W @ H
+            # Update W
+            numerator_W = X @ H.T
+            denominator_W = np.maximum(W @ H @ H.T, eps)
+            W *= numerator_W / denominator_W
 
             # Update H
             numerator_H = W.T @ X
-            denominator_H = (W.T @ W @ H) + eps
+            denominator_H = np.maximum(W.T @ W @ H, eps)
             H *= numerator_H / denominator_H
-
-            # Update W
-            numerator_W = X @ H.T
-            denominator_W = (W @ H @ H.T) + eps
-            W *= numerator_W / denominator_W
 
             # Check convergence (reconstruction error)
             reconstruction = W @ H
@@ -54,3 +53,90 @@ class NMF:
         # Not implemented: would require solving for H given W
         raise NotImplementedError("Use fit_transform to get W")
 
+
+
+def plot_nmf_components(W, image_shape, n_components=None, n_cols=10, margin=2, title="NMF Basis Components"):
+    """
+    Plot the components W[:, j] as a tiled image grid (like a montage).
+    
+    Parameters:
+        W             : np.ndarray, shape (h*w, r) - NMF basis matrix
+        image_shape   : tuple, (h, w)
+        n_components  : int or None - how many components to show (defaults to all)
+        n_cols        : int - number of components per row
+        margin        : int - pixels between images
+        title         : str - title above the montage
+    """
+    h, w = image_shape
+    r = W.shape[1]
+    n_components = n_components or r
+    n_rows = (n_components + n_cols - 1) // n_cols  # ceiling division
+
+    # Create a blank canvas
+    montage_height = n_rows * h + (n_rows - 1) * margin
+    montage_width = n_cols * w + (n_cols - 1) * margin
+    canvas = np.ones((montage_height, montage_width)) * 0.95  # light gray background
+
+    for idx in range(n_components):
+        row = idx // n_cols
+        col = idx % n_cols
+        comp = W[:, idx].reshape(h, w)
+        comp = (comp - comp.min()) / (comp.max() - comp.min())  # normalize to [0, 1]
+
+        y = row * (h + margin)
+        x = col * (w + margin)
+        canvas[y:y+h, x:x+w] = comp
+
+    # Plot the montage
+    plt.figure(figsize=(montage_width / 40, montage_height / 40))
+    plt.imshow(canvas, cmap='gray', aspect='equal')
+    plt.axis('off')
+    plt.title(title, fontsize=12)
+    plt.show()
+
+
+def plot_reconstructed_images(X, X_reconstructed, image_shape, indices, n_cols=5, title="Original vs Reconstructed Images"):
+    """
+    Plot original and reconstructed images with reconstructed ones below originals.
+    Adds row labels once on the left, and a descriptive title for the whole plot.
+    
+    Parameters:
+        X               : np.ndarray, shape (h*w, n_samples)
+        X_reconstructed : np.ndarray, shape (h*w, n_samples)
+        image_shape     : tuple, (h, w)
+        indices         : list of sample indices to show
+        n_cols          : number of image pairs per row
+        title           : str, title displayed above the plot
+    """
+    h, w = image_shape
+    n = len(indices)
+    n_cols = min(n, n_cols)
+    n_rows = 2  # Original + Reconstructed
+
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(2 * n_cols, 4))
+    
+    # Ensure axes is 2D
+    if n_cols == 1:
+        axes = np.array(axes).reshape(n_rows, 1)
+
+    for col_idx, sample_idx in enumerate(indices):
+        original = X[:, sample_idx].reshape(h, w)
+        recon = X_reconstructed[:, sample_idx].reshape(h, w)
+
+        original = (original - original.min()) / (original.max() - original.min())
+        recon = (recon - recon.min()) / (recon.max() - recon.min())
+
+        axes[0, col_idx].imshow(original, cmap='gray')
+        axes[0, col_idx].axis('off')
+
+        axes[1, col_idx].imshow(recon, cmap='gray')
+        axes[1, col_idx].axis('off')
+
+    # Row labels
+    axes[0, 0].set_ylabel("Original", fontsize=12)
+    axes[1, 0].set_ylabel("Reconstructed", fontsize=12)
+
+    # Add overall title
+    plt.suptitle(title, fontsize=12, y=1.02)
+    plt.tight_layout()
+    plt.show()
