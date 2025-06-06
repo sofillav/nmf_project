@@ -97,18 +97,58 @@ $\cdots$
 
 \section{Algorithm with multiplicative updates} \label{NMF_algorithm}
 
-Let $X\in\R^{m\times n}$ and $r \ll\min\{m,n\}$ be given. In this section, we focus on the following optimization problem
+Let $X\in\R^{m\times n}$ and $r \ll\min\{m,n\}$ be given. In this section, we focus on the following constrained optimization problem
 \begin{equation}
     \label{optimization_problem_frobenius}
     \min_{\substack{W \in \mathbb{R}^{m \times r} \\ H \in \mathbb{R}^{r \times n}}} f(W,H) \quad \text{subject to } W \geq 0 \text{ and } H \geq 0,
 \end{equation}
-where $f(W,H)= \frac{1}{2} \|X-WH\|_F^2$. This problem is equivalent to \eqref{optimization_problem} for the case where $d(X,WH)= \|X-WH\|_F$.
+where $f(W,H)= \frac{1}{2} \|X-WH\|_F^2$. Note that this problem is equivalent to \eqref{optimization_problem} for the case where $d(X,WH)= \|X-WH\|_F$. We will apply the KKT conditions, as described in Appendix~\ref{constrained_optimization_methods}.
+
+\subsection{KKT conditions}
+
+We will start by applying the conditions in \eqref{KKT_conditions} for the variables $W=(W_{ik})$. The constraints are given by $g_{ik}(W)= -W_{ik}\leq 0$, so the stationarity condition reads
+\[
+    0= \frac{\partial f}{\partial W_{ik}} -\sum_{} \lambda_{rs}\cdot \frac{\partial g_{rs}}{\partial W_{ik}} = \frac{\partial f}{\partial W_{ik}} +\lambda_{ik}= \left(\nabla_W f\right)_{ik} +\lambda_{ik}.
+\]
+Writing $\Lambda_W=(\lambda_{ik})$, we obtain
+\[
+    \Lambda_W= -\nabla_W f= -(X-WH)H^T= WHH^T -XH^T.
+\]
+Also, the condition $\lambda_{ik}\cdot g_{ik}(W)=0$ in matrix form reads
+\[
+    0= \Lambda_W\circ W= -\nabla_W f\circ W
+\]
+where $\circ$ is the component-wise product of two matrices.
+
+Similarly, for the variables $H=(H_{kj})$, the constraints are $-H_{kj}\leq 0$, and applying the same reasoning yields
+\[
+    \Lambda_H= -\nabla_H f= -W^T(X-WH)= W^TWH -W^TX,
+\]
+\[
+    0= \nabla_H f\circ H.
+\]
+
+To finish, adding the conditions $\Lambda_W\geq 0$ and $\Lambda_H\geq 0$, the KKT condition read
+\begin{equation}
+    \begin{cases}
+        W \geq 0,\quad \nabla_W f = WHH^T - VH^T \geq 0,\quad W \circ \nabla_W f = 0, \\
+        H \geq 0,\quad \nabla_H f = W^TWH - W^TV \geq 0,\quad H \circ \nabla_H f = 0.
+    \end{cases}
+\end{equation}
+These conditions characterize first-order optimality for the constrained problem, and are satisfied at any local minimum.
+
+\subsection{Multiplicative updates}
+
+
+
 
 \appendix
 
-\section{Lagrange multipliers}
+\section{Constrained optimization methods}\label{constrained_optimization_methods}
 
-\paragraph{\bf One equality constrain}
+In many practical optimization problems, the solution is required to satisfy certain constraints. This section introduces two fundamental approaches for handling constraints: the method of Lagrange multipliers for equality constraints, and the {\it Karush-Kuhn-Tucker (KKT)} conditions for inequality constraints.
+
+\subsection{Lagrange multipliers}
 
 Consider the following optimization problem with one equality constrain
 \begin{equation}
@@ -161,9 +201,7 @@ The method described above naturally extends to optimization problems with multi
 \]
 To find candidate solutions, we again look for points such that $\nabla\mathcal{L}(x,y,\lambda_1,\ldots,\lambda_M)=0$.
 
-\bigskip
-
-\paragraph{\bf One inequality constrain}
+\subsection{Karush-Kuhn-Tucker (KKT) conditions}
 
 If we now modify the constraint in \eqref{lagrange_one_constrain} to an inequality constraint, namely $g(x,y)\leq 0$, a similar principle applies. However, since the feasible set may include boundary and interior points, we must refine the conditions under which a point can be optimal. We now look for points $(x,y,\lambda)$ such that
 \[\begin{cases}
@@ -172,19 +210,22 @@ If we now modify the constraint in \eqref{lagrange_one_constrain} to an inequali
     \lambda\geq 0,\\
     \lambda\cdot g(x,y)=0.
 \end{cases}\]
-These are known as the {\it Karush-Kuhn-Tucker (KKT)} conditions for a problem with a single inequality constraint. The condition $\lambda\cdot g(x,y)=0$ ensures that either $g(x,y)=0$ and $\lambda$ can be positive, or $g(x,y)<0$, in which case the corresponding multiplier must be zero. In the latter case, the condition $\nabla f(x,y) -\lambda\cdot \nabla g(x,y)= 0$ reduces to $\nabla f(x,y)=0$, indicating that the point is a stationary point of the objective function in the interior of the feasible region.
+These are known as the Karush-Kuhn-Tucker conditions for a problem with a single inequality constraint. The condition $\lambda\cdot g(x,y)=0$ ensures that either $g(x,y)=0$ and $\lambda$ can be positive, or $g(x,y)<0$, in which case the corresponding multiplier must be zero. In the latter case, the condition $\nabla f(x,y) -\lambda\cdot \nabla g(x,y)= 0$ reduces to $\nabla f(x,y)=0$, indicating that the point is a stationary point of the objective function in the interior of the feasible region.
 
 \bigskip
 
 \paragraph{\bf Multiple inequality constraints}
 
 To finish, we extend to problems involving multiple inequality constraints. Suppose we want to minimize $f(x,y)$ subject to $g_i(x,y)\leq 0$, for $i=1,\ldots, M$. We then look for points $(x,y,\lambda_1,\ldots,\lambda_M)$ such that
-\[\begin{cases}
+\begin{equation}
+    \label{KKT_conditions}
+    \begin{cases}
     \nabla f(x,y) -\sum_{i=1}^M \lambda_i\cdot \nabla g_i(x,y)= 0,\\
     g_i(x,y)\leq 0\ \ \text{for all $i$},\\
     \lambda_i\geq 0\ \ \text{for all $i$},\\
     \lambda_i\cdot g(x,y)= 0\ \ \text{for all $i$.}
-\end{cases}\]
+    \end{cases}
+\end{equation}
 These conditions provide a system of equations and inequalities whose solutions are candidates for constrained local minima or maxima of $f$.
 
 
