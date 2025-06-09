@@ -108,13 +108,13 @@ where $f(W,H)= \frac{1}{2} \|X-WH\|_F^2$. Note that this problem is equivalent t
 
 We will start by applying the conditions in \eqref{KKT_conditions} for the variables $W=(W_{ik})$. The constraints are given by $g_{ik}(W)= -W_{ik}\leq 0$, so the stationarity condition reads
 \[
-    0= \frac{\partial f}{\partial W_{ik}} -\sum_{} \lambda_{rs}\cdot \frac{\partial g_{rs}}{\partial W_{ik}} = \frac{\partial f}{\partial W_{ik}} +\lambda_{ik}= \left(\nabla_W f\right)_{ik} +\lambda_{ik}.
+    0= \frac{\partial f}{\partial W_{ik}} -\sum_{} \lambda_{rs}\cdot \frac{\partial g_{rs}}{\partial W_{ik}} = \frac{\partial f}{\partial W_{ik}} -\lambda_{ik}\cdot (-1)= \left(\nabla_W f\right)_{ik} +\lambda_{ik}.
 \]
 Writing $\Lambda_W=(\lambda_{ik})$, we obtain
 \[
     \Lambda_W= -\nabla_W f= -(X-WH)H^T= WHH^T -XH^T.
 \]
-Also, the condition $\lambda_{ik}\cdot g_{ik}(W)=0$ in matrix form reads
+Also, the complementary slackness conditions $\lambda_{ik}\cdot g_{ik}(W)=0$ in matrix form reads
 \[
     0= \Lambda_W\circ W= -\nabla_W f\circ W
 \]
@@ -128,7 +128,7 @@ Similarly, for the variables $H=(H_{kj})$, the constraints are $-H_{kj}\leq 0$, 
     0= \nabla_H f\circ H.
 \]
 
-To finish, adding the conditions $\Lambda_W\geq 0$ and $\Lambda_H\geq 0$, the KKT condition read
+To finish, adding the feasibility conditions $\Lambda_W\geq 0$ and $\Lambda_H\geq 0$, the KKT conditions read
 \begin{equation}
     \begin{cases}
         W \geq 0,\quad \nabla_W f = WHH^T - VH^T \geq 0,\quad W \circ \nabla_W f = 0, \\
@@ -205,10 +205,10 @@ To find candidate solutions, we again look for points such that $\nabla\mathcal{
 
 If we now modify the constraint in \eqref{lagrange_one_constrain} to an inequality constraint, namely $g(x,y)\leq 0$, a similar principle applies. However, since the feasible set may include boundary and interior points, we must refine the conditions under which a point can be optimal. We now look for points $(x,y,\lambda)$ such that
 \[\begin{cases}
-    \nabla f(x,y) -\lambda\cdot \nabla g(x,y)= 0,\\
-    g(x,y)\leq 0,\\
-    \lambda\geq 0,\\
-    \lambda\cdot g(x,y)=0.
+    \nabla f(x,y) -\lambda\cdot \nabla g(x,y)= 0 & \text{(stationarity)},\\
+    g(x,y)\leq 0 & \text{(primal feasibility)},\\
+    \lambda\geq 0 & \text{(dual feasibility)},\\
+    \lambda\cdot g(x,y)=0 & \text{(complementary slackness)}.
 \end{cases}\]
 These are known as the Karush-Kuhn-Tucker conditions for a problem with a single inequality constraint. The condition $\lambda\cdot g(x,y)=0$ ensures that either $g(x,y)=0$ and $\lambda$ can be positive, or $g(x,y)<0$, in which case the corresponding multiplier must be zero. In the latter case, the condition $\nabla f(x,y) -\lambda\cdot \nabla g(x,y)= 0$ reduces to $\nabla f(x,y)=0$, indicating that the point is a stationary point of the objective function in the interior of the feasible region.
 
@@ -220,12 +220,13 @@ To finish, we extend to problems involving multiple inequality constraints. Supp
 \begin{equation}
     \label{KKT_conditions}
     \begin{cases}
-    \nabla f(x,y) -\sum_{i=1}^M \lambda_i\cdot \nabla g_i(x,y)= 0,\\
-    g_i(x,y)\leq 0\ \ \text{for all $i$},\\
-    \lambda_i\geq 0\ \ \text{for all $i$},\\
-    \lambda_i\cdot g(x,y)= 0\ \ \text{for all $i$.}
+    \nabla f(x,y) -\sum_{i=1}^M \lambda_i\cdot \nabla g_i(x,y)= 0& \text{(stationarity),}\\
+    g_i(x,y)\leq 0\ \ \text{for all $i$} & \text{(primal feasibility),}\\
+    \lambda_i\geq 0\ \ \text{for all $i$} & \text{(dual feasibility),}\\
+    \lambda_i\cdot g(x,y)= 0\ \ \text{for all $i$} & \text{(complementary slackness).}
     \end{cases}
 \end{equation}
+
 These conditions provide a system of equations and inequalities whose solutions are candidates for constrained local minima or maxima of $f$.
 
 

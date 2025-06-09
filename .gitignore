@@ -24,3 +24,5 @@
 # OS-specific files
 .DS_Store
 Thumbs.db
+__pycache__/
+nmf_models/

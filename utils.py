@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-class NMF:
+class nmf:
     def __init__(self, n_components, max_iter=200, tol=1e-4, random_state=None, verbose=False):
         self.n_components = n_components  # Rank r
         self.max_iter = max_iter
@@ -32,13 +32,15 @@ class NMF:
             denominator_H = np.maximum(W.T @ W @ H, eps)
             H *= numerator_H / denominator_H
 
-            # Check convergence (reconstruction error)
+            # Compute reconstruction error
             reconstruction = W @ H
             error = np.linalg.norm(X - reconstruction, 'fro')
 
-            if self.verbose and (i + 1) % 100 == 0:
+            # Print error
+            if self.verbose and (i + 1) % 500 == 0:
                 print(f"Iteration {i+1}/{self.max_iter}, error: {error:.4f}")
 
+            # Check absolute tolerance
             if error < self.tol:
                 break
 
@@ -95,48 +97,50 @@ def plot_nmf_components(W, image_shape, n_components=None, n_cols=10, margin=2, 
     plt.show()
 
 
-def plot_reconstructed_images(X, X_reconstructed, image_shape, indices, n_cols=5, title="Original vs Reconstructed Images"):
+def plot_reconstructed_images(X, X_reconstructed, image_shape, indices, n_cols=10, margin=2, title="Original vs Reconstructed Images"):
     """
-    Plot original and reconstructed images with reconstructed ones below originals.
-    Adds row labels once on the left, and a descriptive title for the whole plot.
+    Plot original and reconstructed images as a montage grid.
+    Each pair is shown vertically: original on top, reconstructed below.
     
     Parameters:
         X               : np.ndarray, shape (h*w, n_samples)
         X_reconstructed : np.ndarray, shape (h*w, n_samples)
         image_shape     : tuple, (h, w)
         indices         : list of sample indices to show
-        n_cols          : number of image pairs per row
-        title           : str, title displayed above the plot
+        n_cols          : int, number of image pairs per row
+        margin          : int, pixels between images
+        title           : str, title above the montage
     """
     h, w = image_shape
     n = len(indices)
-    n_cols = min(n, n_cols)
-    n_rows = 2  # Original + Reconstructed
+    n_rows = (n + n_cols - 1) // n_cols  # number of rows of pairs
 
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(2 * n_cols, 4))
-    
-    # Ensure axes is 2D
-    if n_cols == 1:
-        axes = np.array(axes).reshape(n_rows, 1)
+    # Total canvas size
+    canvas_height = n_rows * 2 * h + (2 * n_rows - 1) * margin
+    canvas_width = n_cols * w + (n_cols - 1) * margin
+    canvas = np.ones((canvas_height, canvas_width)) * 0.95  # light gray background
 
-    for col_idx, sample_idx in enumerate(indices):
+    for idx, sample_idx in enumerate(indices):
+        row = idx // n_cols
+        col = idx % n_cols
+
         original = X[:, sample_idx].reshape(h, w)
         recon = X_reconstructed[:, sample_idx].reshape(h, w)
 
-        original = (original - original.min()) / (original.max() - original.min())
-        recon = (recon - recon.min()) / (recon.max() - recon.min())
+        # Normalize to [0, 1] using NumPy 2.0-safe approach
+        original = (original - np.min(original)) / (np.ptp(original) + 1e-8)
+        recon = (recon - np.min(recon)) / (np.ptp(recon) + 1e-8)
 
-        axes[0, col_idx].imshow(original, cmap='gray')
-        axes[0, col_idx].axis('off')
+        y_top = row * (2 * h + margin)       # y position for original
+        y_bottom = y_top + h + margin        # y position for reconstructed
+        x = col * (w + margin)
 
-        axes[1, col_idx].imshow(recon, cmap='gray')
-        axes[1, col_idx].axis('off')
+        canvas[y_top:y_top+h, x:x+w] = original
+        canvas[y_bottom:y_bottom+h, x:x+w] = recon
 
-    # Row labels
-    axes[0, 0].set_ylabel("Original", fontsize=12)
-    axes[1, 0].set_ylabel("Reconstructed", fontsize=12)
-
-    # Add overall title
-    plt.suptitle(title, fontsize=12, y=1.02)
-    plt.tight_layout()
+    # Show the montage
+    plt.figure(figsize=(canvas_width / 40, canvas_height / 40))
+    plt.imshow(canvas, cmap='gray', aspect='equal')
+    plt.axis('off')
+    plt.title(title, fontsize=12)
     plt.show()
