@@ -4,6 +4,7 @@
 \usepackage{amsmath,amsfonts,amssymb}
 \usepackage{hyperref}
 
+\newtheorem{theo}{Theorem}
 \newcommand{\R}{\mathbb{R}}
 
 %-------------------------Python-------------------------
@@ -89,7 +90,7 @@ Hence LDR provides a rank-$r$ approximation $WH$ of $X$, which can be written as
 
 \bigskip
 
-In order to compute $W$ and $H$ given $X$ and $r$, one needs to define an error measure. For example, when $(W,H)$ minimizes the Frobenius norm
+In order to compute $W$ and $H$ given $X$ and $r$, one needs to define an error measure. For example, when $(W,H)$ minimizes the Frobenius (or Euclidean) norm
 \[  
     \|X-WH\|_F^2 = \sum_{i,j} (X-WH)_{ij}^2,
 \]
@@ -171,7 +172,7 @@ These conditions characterize first-order optimality for the constrained problem
 
 \subsection{Multiplicative updates}
 
-Given $X$, $W$ and $H$, the idea is to modify iteratively $W$ and $H$ following the rule in \eqref{multiplicative_updates}. It turns out that this updates do not increase the target function. We will comment on this below. In Listing~\ref{lst_multiplicative_updates} we see the alorithm of multiplicative updates used in this work, written in Python code.
+Given $X$, $W$ and $H$, the goal is to iteratively update $W$ and $H$ according to the rules in \eqref{multiplicative_updates}. Listing~\ref{lst_multiplicative_updates} shows the multiplicative update algorithm used in this work, implemented in Python.
 
 \begin{lstlisting}[
     float,
@@ -200,20 +201,36 @@ def multiplicative_updates(X, r, max_iter=2000, random_state=0):
     return W, H
 \end{lstlisting}
 
-\bigskip
-
-The multiplicative updates modify $W$ and $H$ as follow:
+The multiplicative updates modify $W$ and $H$ as follows:
 \begin{equation}
     \label{multiplicative_updates}
     W \leftarrow W\circ \frac{\left[XH^T\right]}{\left[WHH^T\right]} \qquad \text{and}\qquad H \leftarrow H\circ \frac{\left[W^TX\right]}{\left[W^TWH\right]},
 \end{equation}
 where $\frac{[\ ]}{[\ ]}$ denotes the componentwise division between two matrices.
 
-To make sense of the update rules, note the following: the update rules remain $W$ and $H$ unchanged if and only if $W$ and $H$ satisfy the conditions in \eqref{first_order_optimality_conditions}. We can easily check this for $W$, and for $H$ is the same idea. The update rule remain $W$ unchanged if and only if
+\bigskip
+
+To understand the rationale behind the update rules in \eqref{multiplicative_updates}, observe that from the gradient expression $\nabla_W f= WHH^T-XH^T$, it follows that
 \[
-    W_{ik} = W_{ik}\cdot \frac{(XH^T)_{ik}}{(WHH^T)_{ik}}\quad \Leftrightarrow\quad W_{ik}=0\quad \text{or}\quad \frac{(XH^T)_{ik}}{(WHH^T)_{ik}}=1
+    \frac{(XH^T)_{ik}}{(WHH^T)_{ik}}\geq 1 \quad \Leftrightarrow \quad (\nabla_W f)_{ik}\leq 0.
 \]
-for all $i,k$.
+Therefore, in order to look for matrices $W$ and $H$ that satisfy \eqref{first_order_optimality_conditions}, for each entry of $W$, the multiplicative update behaves as follows:
+(i) increase the entry if its partial derivative is negative,
+(ii) decrease the entry if its partial derivative is positive, or
+(iii) leave the entry unchanged if its partial derivative is equal to zero. The same logic applies to the updates for $H$.
+
+In Theorem 1 of \cite{LS}, the authors prove the following:
+
+\begin{theo}
+    The Euclidean distance $\|X-WH\|_F$ is nonincreasing under the update rules \eqref{multiplicative_updates}.
+\end{theo}
+
+On the other hand, it is straightforward to verify that if a point $(W,H)$ satisfies the first-order optimality conditions \eqref{first_order_optimality_conditions}, then the update rules \eqref{multiplicative_updates} do not alter the values of $W$ and $H$. 
+
+However, if an entry of $W$ is zero, the MU cannot change it, regardless of the sign of the corresponding partial derivative. As a result, it is possible for an entry of $W$ to be zero while its partial derivative is negative, which violates the optimality conditions in \eqref{first_order_optimality_conditions}. Therefore, the multiplicative updates are not guaranteed to converge to a point that satisfies the first-order optimality conditions.
+
+
+
 
 \appendix
 
@@ -306,6 +323,9 @@ These conditions provide a system of equations and inequalities whose solutions 
 \begin{thebibliography}{9}
     \bibitem{G}
     Gillis, N. (2021). Nonnegative matrix factorization. Society for Industrial and Applied Mathematics. https://lccn.loc.gov/2020042037
+
+    \bibitem{LS}
+    Lee, D. D., \& Seung, H. S. (2001). Algorithms for non-negative matrix factorization. Advances in Neural Information Processing Systems, 13, 556–562.
 \end{thebibliography}
 
 \end{document}
