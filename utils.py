@@ -1,6 +1,34 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+def multiplicative_updates(X, r, max_iter=2000, tol=None, random_state=0, verbose=False):
+    m, n = X.shape
+
+    rng = np.random.default_rng(random_state) # Initialize local random 
+
+    # Initialize W and H with values in [0, 1)
+    W = rng.random((m, r))
+    H = rng.random((r, n))
+
+    eps = 1e-10 # Small constant to avoid division by zero
+
+    for i in range(max_iter):
+        # Update rules for W and H
+        W *= (X @ H.T) / np.maximum(W @ H @ H.T, eps)
+        H *= (W.T @ X) / np.maximum(W.T @ W @ H, eps)
+
+        if tol is not None:
+            reconstruction = W @ H
+            error = np.linalg.norm(X - reconstruction, 'fro')
+
+            if verbose and (i + 1) % 500 == 0:
+                print(f"Iteration {i+1}/{max_iter}, error: {error:.4f}")
+
+            if error < tol:
+                break
+
+    return W, H
+
 
 class nmf:
     def __init__(self, n_components, max_iter=200, tol=1e-4, random_state=None, verbose=False):
@@ -11,38 +39,14 @@ class nmf:
         self.verbose = verbose
 
     def fit_transform(self, X):
-        np.random.seed(self.random_state)
-        m, n = X.shape
-        r = self.n_components
-
-        # Initialize W (m x r) and H (r x n) with small positive values
-        W = np.random.rand(m, r)
-        H = np.random.rand(r, n)
-
-        eps = 1e-10  # Small constant to avoid division by zero
-
-        for i in range(self.max_iter):
-            # Update W
-            numerator_W = X @ H.T
-            denominator_W = np.maximum(W @ H @ H.T, eps)
-            W *= numerator_W / denominator_W
-
-            # Update H
-            numerator_H = W.T @ X
-            denominator_H = np.maximum(W.T @ W @ H, eps)
-            H *= numerator_H / denominator_H
-
-            # Compute reconstruction error
-            reconstruction = W @ H
-            error = np.linalg.norm(X - reconstruction, 'fro')
-
-            # Print error
-            if self.verbose and (i + 1) % 500 == 0:
-                print(f"Iteration {i+1}/{self.max_iter}, error: {error:.4f}")
-
-            # Check absolute tolerance
-            if error < self.tol:
-                break
+        W, H = multiplicative_updates(
+            X,
+            self.n_components, 
+            max_iter=self.max_iter, 
+            tol=self.tol,
+            random_state=self.random_state,
+            verbose=self.verbose
+        )
 
         self.W = W
         self.H = H

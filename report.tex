@@ -6,6 +6,37 @@
 
 \newcommand{\R}{\mathbb{R}}
 
+%-------------------------Python-------------------------
+\usepackage{listings,xcolor}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegray},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+%-------------------------Python-------------------------
+
+
 \title{Nonnegative Matrix Factorization}
 \author{Sofía Llavayol}
 \date{\today}
@@ -130,17 +161,59 @@ Similarly, for the variables $H=(H_{kj})$, the constraints are $-H_{kj}\leq 0$, 
 
 To finish, adding the feasibility conditions $\Lambda_W\geq 0$ and $\Lambda_H\geq 0$, the KKT conditions read
 \begin{equation}
+    \label{first_order_optimality_conditions}
     \begin{cases}
-        W \geq 0,\quad \nabla_W f = WHH^T - VH^T \geq 0,\quad W \circ \nabla_W f = 0, \\
-        H \geq 0,\quad \nabla_H f = W^TWH - W^TV \geq 0,\quad H \circ \nabla_H f = 0.
+        W \geq 0,\quad \nabla_W f = WHH^T - XH^T \geq 0,\quad W \circ \nabla_W f = 0, \\
+        H \geq 0,\quad \nabla_H f = W^TWH - W^TX \geq 0,\quad H \circ \nabla_H f = 0.
     \end{cases}
 \end{equation}
 These conditions characterize first-order optimality for the constrained problem, and are satisfied at any local minimum.
 
 \subsection{Multiplicative updates}
 
+Given $X$, $W$ and $H$, the idea is to modify iteratively $W$ and $H$ following the rule in \eqref{multiplicative_updates}. It turns out that this updates do not increase the target function. We will comment on this below. In Listing~\ref{lst_multiplicative_updates} we see the alorithm of multiplicative updates used in this work, written in Python code.
 
+\begin{lstlisting}[
+    float,
+    language=Python,
+    caption={Algorithm with multiplicative updates.},
+    label={lst_multiplicative_updates}
+]
+import numpy as np
 
+def multiplicative_updates(X, r, max_iter=2000, random_state=0):
+    m, n = X.shape
+
+    rng = np.random.default_rng(random_state) # Initialize local random generator
+
+    # Initialize W and H with values in [0, 1)
+    W = rng.random((m, r))
+    H = rng.random((r, n)) 
+    
+    eps = 1e-10 # Small constant to avoid division by zero
+
+    for i in range(max_iter):
+        # Update rules for W and H
+        W *= (X @ H.T) / np.maximum(W @ H @ H.T, eps)
+        H *= (W.T @ X) / np.maximum(W.T @ W @ H, eps)
+
+    return W, H
+\end{lstlisting}
+
+\bigskip
+
+The multiplicative updates modify $W$ and $H$ as follow:
+\begin{equation}
+    \label{multiplicative_updates}
+    W \leftarrow W\circ \frac{\left[XH^T\right]}{\left[WHH^T\right]} \qquad \text{and}\qquad H \leftarrow H\circ \frac{\left[W^TX\right]}{\left[W^TWH\right]},
+\end{equation}
+where $\frac{[\ ]}{[\ ]}$ denotes the componentwise division between two matrices.
+
+To make sense of the update rules, note the following: the update rules remain $W$ and $H$ unchanged if and only if $W$ and $H$ satisfy the conditions in \eqref{first_order_optimality_conditions}. We can easily check this for $W$, and for $H$ is the same idea. The update rule remain $W$ unchanged if and only if
+\[
+    W_{ik} = W_{ik}\cdot \frac{(XH^T)_{ik}}{(WHH^T)_{ik}}\quad \Leftrightarrow\quad W_{ik}=0\quad \text{or}\quad \frac{(XH^T)_{ik}}{(WHH^T)_{ik}}=1
+\]
+for all $i,k$.
 
 \appendix
 
