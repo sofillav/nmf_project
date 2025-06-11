@@ -81,7 +81,7 @@ Note that this is equivalent to {\it low-rank matrix approximation (LRMA)} --tha
     \item each column of $W\in\R^{m\times r}$ is a basis element, $W(:,j)=w_j$;
     \item each column of $H\in\R^{r\times n}$ contains the coordinates of a data point $x_j$ in the basis $W$, $H(:,j)=h_j$.
 \end{itemize}
-Hence LDR provides a rank-$r$ approximation $WH$ of $X$, which can be written as:
+Hence LDR provides a rank-$r$ approximation $X\approx WH$, which can be written as:
 \[
     \begin{bmatrix} x_1 \cdots x_n \end{bmatrix} \approx
     \begin{bmatrix} w_1 \cdots w_r \end{bmatrix}
@@ -134,15 +134,15 @@ Let $X\in\R^{m\times n}$ and $r \ll\min\{m,n\}$ be given. In this section, we fo
     \label{optimization_problem_frobenius}
     \min_{\substack{W \in \mathbb{R}^{m \times r} \\ H \in \mathbb{R}^{r \times n}}} f(W,H) \quad \text{subject to } W \geq 0 \text{ and } H \geq 0,
 \end{equation}
-where $f(W,H)= \frac{1}{2} \|X-WH\|_F^2$. Note that this problem is equivalent to \eqref{optimization_problem} for the case where $d(X,WH)= \|X-WH\|_F$. We will apply the KKT conditions, as described in Appendix~\ref{constrained_optimization_methods}.
+where $f(W,H)= \frac{1}{2} \|X-WH\|_F^2$. Note that this problem is equivalent to \eqref{optimization_problem} for the case where $d(X,WH)= \|X-WH\|_F$ is the Euclidean distance. We will apply the KKT conditions, as described in Appendix~\ref{constrained_optimization_methods}.
 
 \subsection{KKT conditions}
 
 We will start by applying the conditions in \eqref{KKT_conditions} for the variables $W=(W_{ik})$. The constraints are given by $g_{ik}(W)= -W_{ik}\leq 0$, so the stationarity condition reads
 \[
-    0= \frac{\partial f}{\partial W_{ik}} -\sum_{} \lambda_{rs}\cdot \frac{\partial g_{rs}}{\partial W_{ik}} = \frac{\partial f}{\partial W_{ik}} -\lambda_{ik}\cdot (-1)= \left(\nabla_W f\right)_{ik} +\lambda_{ik}.
+    0= \frac{\partial f}{\partial W_{ik}} -\sum_{} \lambda_{rs}\cdot \frac{\partial g_{rs}}{\partial W_{ik}} = \frac{\partial f}{\partial W_{ik}} -\lambda_{ik}\cdot (-1)= \left(\nabla_W f\right)_{ik} +\lambda_{ik}
 \]
-Writing $\Lambda_W=(\lambda_{ik})$, we obtain
+for all $i,k$. Hence, writing $\Lambda_W=(\lambda_{ik})$ and computing the gradient $\nabla_W f$, we obtain
 \[
     \Lambda_W= -\nabla_W f= -(X-WH)H^T= WHH^T -XH^T.
 \]
@@ -168,7 +168,7 @@ To finish, adding the feasibility conditions $\Lambda_W\geq 0$ and $\Lambda_H\ge
         H \geq 0,\quad \nabla_H f = W^TWH - W^TX \geq 0,\quad H \circ \nabla_H f = 0.
     \end{cases}
 \end{equation}
-These conditions characterize first-order optimality for the constrained problem, and are satisfied at any local minimum.
+These conditions characterize first-order optimality for the constrained problem \eqref{optimization_problem_frobenius}, and are satisfied at any local minimum.
 
 \subsection{Multiplicative updates}
 
@@ -201,7 +201,7 @@ def multiplicative_updates(X, r, max_iter=2000, random_state=0):
     return W, H
 \end{lstlisting}
 
-The multiplicative updates modify $W$ and $H$ as follows:
+The multiplicative updates (MU) modify $W$ and $H$ as follows:
 \begin{equation}
     \label{multiplicative_updates}
     W \leftarrow W\circ \frac{\left[XH^T\right]}{\left[WHH^T\right]} \qquad \text{and}\qquad H \leftarrow H\circ \frac{\left[W^TX\right]}{\left[W^TWH\right]},
@@ -225,9 +225,13 @@ In Theorem 1 of \cite{LS}, the authors prove the following:
     The Euclidean distance $\|X-WH\|_F$ is nonincreasing under the update rules \eqref{multiplicative_updates}.
 \end{theo}
 
+\noindent Hence, the MU lead to an algorithm for which $f$ does not increase.
+
+\bigskip
+
 On the other hand, it is straightforward to verify that if a point $(W,H)$ satisfies the first-order optimality conditions \eqref{first_order_optimality_conditions}, then the update rules \eqref{multiplicative_updates} do not alter the values of $W$ and $H$. 
 
-However, if an entry of $W$ is zero, the MU cannot change it, regardless of the sign of the corresponding partial derivative. As a result, it is possible for an entry of $W$ to be zero while its partial derivative is negative, which violates the optimality conditions in \eqref{first_order_optimality_conditions}. Therefore, the multiplicative updates are not guaranteed to converge to a point that satisfies the first-order optimality conditions.
+However, if an entry of $W$ is zero, the MU cannot change it, regardless of the sign of the corresponding partial derivative. As a result, it is possible for an entry of $W$ to be zero while its partial derivative is negative, which violates the optimality conditions in \eqref{first_order_optimality_conditions}. Therefore, the MU are not guaranteed to converge to a point that satisfies the first-order optimality conditions.
 
 
 
