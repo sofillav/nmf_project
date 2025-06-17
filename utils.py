@@ -148,3 +148,16 @@ def plot_reconstructed_images(X, X_reconstructed, image_shape, indices, n_cols=1
     plt.axis('off')
     plt.title(title, fontsize=12)
     plt.show()
+
+def plot_matrix_histogram(A, name):
+    a_min, a_max = A.min(), A.max()
+
+    plt.figure(figsize=(8, 4))
+    plt.hist(A.flatten(), bins=50, range=(a_min, a_max), color='goldenrod', edgecolor='black')
+    plt.xlabel("Value")
+    plt.ylabel("Frequency")
+    plt.title(f"Histogram of Values in {name}")
+    plt.xlim(a_min, a_max)
+    plt.grid(True, linestyle='--', alpha=0.5)
+    plt.tight_layout()
+    plt.show()
