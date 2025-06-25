@@ -1,6 +1,6 @@
 # Nonnegative Matrix Factorization on LFW Dataset
 
-This project applies **Nonnegative Matrix Factorization (NMF)** to face images from the Labeled Faces in the Wild (LFW) dataset. It includes a custom implementation of the multiplicative updates algorithm by Lee and Seung, along with a thorough analysis of sparsity, reconstruction error, and visual interpretation of learned features.
+This repository presents the final project for the course *Numerical Linear Algebra for Statistical Learning* at Universidad de la República, Uruguay. The project applies **Nonnegative Matrix Factorization (NMF)** to face images from the Labeled Faces in the Wild (LFW) dataset. It includes a custom implementation of the multiplicative updates algorithm by Lee and Seung, along with a thorough analysis of sparsity, reconstruction error, and visual interpretation of learned features.
 
 ## Repository Structure
 
