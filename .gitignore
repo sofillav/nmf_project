@@ -28,3 +28,6 @@ __pycache__/
 nmf_models/
 report.tex
 *.png
+img_error_vs_rank.*
+img_reconstruction.*
+img_sparcity_vs_rank.*
