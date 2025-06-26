@@ -1,63 +1,113 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def multiplicative_updates(X, r, max_iter=2000, tol=None, random_state=0, verbose=False):
-    m, n = X.shape
-
+def multiplicative_updates(X, n_components, max_iter=1500, W_init=None, H_init=None, random_state=0, tol=1e-4, verbose=False):
     rng = np.random.default_rng(random_state) # Initialize local random 
-
-    # Initialize W and H with values in [0, 1)
-    W = rng.random((m, r))
-    H = rng.random((r, n))
+    m, n = X.shape
+    r = n_components
 
     eps = 1e-10 # Small constant to avoid division by zero
+
+    # Initialize W and H with values in [0, 1)
+    W = W_init.copy() if W_init is not None else rng.random((m, r))
+    H = H_init.copy() if H_init is not None else rng.random((r, n))
+
+    # Rescale W to minimize ||X - WH||_F
+    WH_init = W @ H
+    numerator = np.sum(X * WH_init)
+    denominator = np.maximum(np.sum(WH_init * WH_init), eps)
+    alpha = numerator / denominator
+    W *= alpha
+
+    if verbose:
+        print(f"Initial error: {np.linalg.norm(X - W @ H, 'fro'):.4f}")
+
+    prev_error = None
 
     for i in range(max_iter):
         # Update rules for W and H
         W *= (X @ H.T) / np.maximum(W @ H @ H.T, eps)
         H *= (W.T @ X) / np.maximum(W.T @ W @ H, eps)
 
-        if tol is not None:
-            reconstruction = W @ H
-            error = np.linalg.norm(X - reconstruction, 'fro')
+        X_reconstructed = W @ H
+        error = np.linalg.norm(X - X_reconstructed, 'fro')
+        
+        if verbose and (i + 1) % 500 == 0:
+            print(f"Iteration {i+1}/{max_iter}, Frobenius error: {error:.4f}")
 
-            if verbose and (i + 1) % 500 == 0:
-                print(f"Iteration {i+1}/{max_iter}, error: {error:.4f}")
-
-            if error < tol:
+        # --- Check for convergence ---
+        if tol is not None and prev_error is not None:
+            rel_change = abs(prev_error - error) / (prev_error + 1e-10)
+            if rel_change < tol:
+                if verbose:
+                    print(f"Converged at iteration {i} with relative change {rel_change:.4e}")
                 break
+
+        prev_error = error
 
     return W, H
 
 
-class nmf:
-    def __init__(self, n_components, max_iter=200, tol=1e-4, random_state=None, verbose=False):
-        self.n_components = n_components  # Rank r
-        self.max_iter = max_iter
-        self.tol = tol
-        self.random_state = random_state
-        self.verbose = verbose
 
-    def fit_transform(self, X):
-        W, H = multiplicative_updates(
-            X,
-            self.n_components, 
-            max_iter=self.max_iter, 
-            tol=self.tol,
-            random_state=self.random_state,
-            verbose=self.verbose
-        )
+def hals_update(X, n_components, max_iter=1500, W_init=None, H_init=None, random_state=0, tol=1e-4, verbose=False):
+    rng = np.random.default_rng(random_state)
+    m, n = X.shape
+    r = n_components
 
-        self.W = W
-        self.H = H
-        return W
+    eps = 1e-10 # Small constant to avoid division by zero
 
-    def inverse_transform(self):
-        return self.W @ self.H
+    # Initialize W and H with nonnegative random values
+    W = W_init.copy() if W_init is not None else rng.random((m, r))
+    H = H_init.copy() if H_init is not None else rng.random((r, n))
 
-    def transform(self, X):
-        # Not implemented: would require solving for H given W
-        raise NotImplementedError("Use fit_transform to get W")
+    # Rescale W to minimize ||X - WH||_F
+    WH_init = W @ H
+    numerator = np.sum(X * WH_init)
+    denominator = np.maximum(np.sum(WH_init * WH_init), eps)
+    alpha = numerator / denominator
+    W *= alpha
+
+    if verbose:
+        print(f"Initial error: {np.linalg.norm(X - W @ H, 'fro'):.4f}")
+
+    prev_error = None
+
+    for i in range(max_iter):
+        # --- Update H one row at a time ---
+        WtW = W.T @ W
+        WtX = W.T @ X
+        for k in range(r):
+            numerator = WtX[k, :] - WtW[k, :] @ H + WtW[k, k] * H[k, :]
+            denominator = np.maximum(WtW[k, k], eps)
+            H[k, :] = np.maximum(0, numerator / denominator)
+
+        # --- Update W one column at a time ---
+        HHt = H @ H.T
+        XHt = X @ H.T
+        for k in range(r):
+            numerator = XHt[:, k] - W @ HHt[:, k] + HHt[k, k] * W[:, k]
+            denominator = np.maximum(HHt[k, k], eps)
+            W[:, k] = np.maximum(0, numerator / denominator)
+
+        # --- Compute reconstruction error ---
+        X_reconstructed = W @ H
+        error = np.linalg.norm(X - X_reconstructed, 'fro')
+
+        if verbose and (i + 1) % 500 == 0:
+            print(f"Iteration {i+1}/{max_iter}, Frobenius error: {error:.4f}")
+
+        # --- Check for convergence ---
+        if tol is not None and prev_error is not None:
+            rel_change = abs(prev_error - error) / (prev_error + 1e-10)
+            if rel_change < tol:
+                if verbose:
+                    print(f"Converged at iteration {i} with relative change {rel_change:.4e}")
+                break
+
+        prev_error = error
+
+    return W, H
+
 
 
 
