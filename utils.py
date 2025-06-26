@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from kneed import KneeLocator
 
 def multiplicative_updates(X, n_components, max_iter=1500, W_init=None, H_init=None, random_state=0, tol=1e-4, verbose=False):
     rng = np.random.default_rng(random_state) # Initialize local random 
@@ -209,5 +210,21 @@ def plot_matrix_histogram(A, name):
     plt.title(f"Histogram of Values in {name}")
     plt.xlim(a_min, a_max)
     plt.grid(True, linestyle='--', alpha=0.5)
+    plt.tight_layout()
+    plt.show()
+
+def plot_reconstruction_error_vs_rank(ranks_vals, error_vals):
+    knee = KneeLocator(ranks_vals, error_vals, curve='convex', direction='decreasing')
+    print("Elbow at rank:", knee.knee)
+
+    # Plot with elbow marked
+    plt.figure(figsize=(8, 5))
+    plt.plot(ranks_vals, error_vals, marker='o',color='firebrick')
+    plt.vlines(knee.knee, min(error_vals), max(error_vals), linestyles='dashed', colors='goldenrod', label=f"Elbow at r={knee.knee}")
+    plt.title('Reconstruction Error vs. Rank')
+    plt.xlabel('Rank (Number of Components)')
+    plt.ylabel('Frobenius Reconstruction Error')
+    plt.legend()
+    plt.grid(True)
     plt.tight_layout()
     plt.show()
