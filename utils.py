@@ -2,16 +2,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 from kneed import KneeLocator
 
-def multiplicative_updates(X, n_components, max_iter=1500, W_init=None, H_init=None, random_state=0, tol=1e-4, verbose=False):
-    rng = np.random.default_rng(random_state) # Initialize local random 
+def multiplicative_updates(X, n_components, max_iter=1500, random_state=0, tol=1e-4, verbose=False):
     m, n = X.shape
     r = n_components
-
     eps = 1e-10 # Small constant to avoid division by zero
 
+    rng = np.random.default_rng(random_state) # Initialize local random 
+
     # Initialize W and H with values in [0, 1)
-    W = W_init.copy() if W_init is not None else rng.random((m, r))
-    H = H_init.copy() if H_init is not None else rng.random((r, n))
+    W = rng.random((m, r))
+    H = rng.random((r, n))
 
     # Rescale W to minimize ||X - WH||_F
     WH_init = W @ H
@@ -50,16 +50,16 @@ def multiplicative_updates(X, n_components, max_iter=1500, W_init=None, H_init=N
 
 
 
-def hals_update(X, n_components, max_iter=1500, W_init=None, H_init=None, random_state=0, tol=1e-4, verbose=False):
-    rng = np.random.default_rng(random_state)
+def hals_update(X, n_components, max_iter=1500, random_state=0, tol=1e-4, verbose=False):
     m, n = X.shape
     r = n_components
-
     eps = 1e-10 # Small constant to avoid division by zero
 
-    # Initialize W and H with nonnegative random values
-    W = W_init.copy() if W_init is not None else rng.random((m, r))
-    H = H_init.copy() if H_init is not None else rng.random((r, n))
+    rng = np.random.default_rng(random_state) # Initialize local random 
+
+    # Initialize W and H with values in [0, 1)
+    W = rng.random((m, r))
+    H = rng.random((r, n))
 
     # Rescale W to minimize ||X - WH||_F
     WH_init = W @ H
