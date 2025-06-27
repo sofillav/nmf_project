@@ -78,7 +78,7 @@ def hals_update(X, n_components, max_iter=1500, W_init=None, H_init=None, random
         WtW = W.T @ W
         WtX = W.T @ X
         for k in range(r):
-            numerator = WtX[k, :] - WtW[k, :] @ H + WtW[k, k] * H[k, :]
+            numerator = WtX[k, :] - WtW[k, :] @ H + WtW[k, k] * H[k, :] # Coincides with the theoretical updating rule
             denominator = np.maximum(WtW[k, k], eps)
             H[k, :] = np.maximum(0, numerator / denominator)
 
@@ -86,7 +86,7 @@ def hals_update(X, n_components, max_iter=1500, W_init=None, H_init=None, random
         HHt = H @ H.T
         XHt = X @ H.T
         for k in range(r):
-            numerator = XHt[:, k] - W @ HHt[:, k] + HHt[k, k] * W[:, k]
+            numerator = XHt[:, k] - W @ HHt[:, k] + HHt[k, k] * W[:, k] # Coincides with the theoretical updating rule
             denominator = np.maximum(HHt[k, k], eps)
             W[:, k] = np.maximum(0, numerator / denominator)
 
