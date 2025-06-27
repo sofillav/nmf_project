@@ -228,3 +228,31 @@ def plot_reconstruction_error_vs_rank(ranks_vals, error_vals):
     plt.grid(True)
     plt.tight_layout()
     plt.show()
+
+from kneed import KneeLocator
+import matplotlib.pyplot as plt
+
+def plot_reconstruction_errors_comparison(ranks_vals, mu_errors, hals_errors):
+    knee_mu = KneeLocator(ranks_vals, mu_errors, curve='convex', direction='decreasing')
+    knee_hals = KneeLocator(ranks_vals, hals_errors, curve='convex', direction='decreasing')
+
+    print(f"Elbow for MU at rank: {knee_mu.knee}")
+    print(f"Elbow for HALS at rank: {knee_hals.knee}")
+
+    plt.figure(figsize=(8, 5))
+
+    # Plot MU errors
+    plt.plot(ranks_vals, mu_errors, marker='o', label='MU', color='firebrick')
+    plt.vlines(knee_mu.knee, min(mu_errors), max(mu_errors), linestyles='dashed', colors='firebrick', alpha=0.6)
+
+    # Plot HALS errors
+    plt.plot(ranks_vals, hals_errors, marker='s', label='HALS', color='teal')
+    plt.vlines(knee_hals.knee, min(hals_errors), max(hals_errors), linestyles='dashed', colors='teal', alpha=0.6)
+
+    plt.title('Reconstruction Error vs. Rank (MU vs. HALS)')
+    plt.xlabel('Rank (Number of Components)')
+    plt.ylabel('Frobenius Reconstruction Error')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
